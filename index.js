@@ -69,16 +69,19 @@ io.on("connection", (socket) => {
     // Evento ao desconectar-se do socket
     socket.on("disconnect", () => {
 
-        const objMessage = {
-            message: 'saiu da sala', date: getActualDate(),
-            type: 'enter', user: socket.user
-        };
-        messages.push(objMessage);
+        if(socket.user){
 
-        io.sockets.emit('update-message', objMessage);
-
-        delete users[socket.user];
-        io.sockets.emit('update-users', Object.keys(users));
+            const objMessage = {
+                message: 'saiu da sala', date: getActualDate(),
+                type: 'enter', user: socket.user
+            };
+            messages.push(objMessage);
+            
+            io.sockets.emit('update-message', objMessage);
+            
+            delete users[socket.user];
+            io.sockets.emit('update-users', Object.keys(users));
+        }
 
     });
 
