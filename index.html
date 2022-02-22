@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gio Chat</title>
+    <link rel="stylesheet" href="css.css">
+</head>
+
+<body>
+
+    <form class="access-user">
+
+        <div>
+            <input type="text" placeholder="Seu nome" id="user" name="user">
+            <button>Entrar</button>
+        </div>
+
+    </form>
+
+    <div class="box">
+
+        <div class="box-messages">
+
+            <div class="messages">
+
+            </div>
+
+            <form class="input" id="chat">
+                <textarea cols="30" rows="5" name="message" id="message"></textarea>
+                <button>Enviar</button>
+            </form>
+
+        </div>
+
+        <div class="users-box">
+
+            <div class="user-online">Usuários online</div>
+
+            <div class="users">
+            </div>
+
+        </div>
+
+    </div>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+    <script>
+        var socket = io.connect();
+
+        if (localStorage.getItem('user')) {
+            socket.emit("enter", localStorage.getItem('user'), () => {
+                $(".access-user").hide();
+            });
+        } else {
+            $(".box").hide();
+        }
+
+
+        $("#chat").on("submit", (e) => {
+            e.preventDefault();
+            socket.emit("send-message", $("#message").val(), () => {
+                $("#message").val("");
+            })
+        });
+
+        $(".access-user").on("submit", (e) => {
+            e.preventDefault();
+            const user = $("#user").val();
+            localStorage.setItem('user', user);
+            socket.emit("enter", user, () => {
+                $("#user").val('');
+                $(".access-user").hide();
+                $(".box").show();
+            })
+        });
+
+        socket.on("update-message", (message) => {
+            $(".messages").append(`<div class="${message.type}">
+                    <b> [${message.date}] <span style="color: ${message.color};">${message.user
+                } </b> </span>: ${message.message}
+                </div>`);
+        });
+
+        socket.on("update-users", (users) => {
+            $('.users').html('');
+            users.forEach(u => {
+                $(".users").append(`<div>${u}</div>`);
+            });
+        });
+    </script>
+
+</body>
+
+</html>
